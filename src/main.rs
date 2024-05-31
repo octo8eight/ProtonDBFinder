@@ -1,6 +1,8 @@
-pub mod protondb_core;
-use crate::protondb_core::Game;
-use std::env;
+mod core;
+use clap::Parser;
+use core::args::SubCommandType::{Name, ID};
+use core::args::{NameCommand, ProtonDBFinderArgs};
+use core::fetching::Game;
 use std::panic;
 
 #[tokio::main]
@@ -11,23 +13,27 @@ async fn main() {
     }));
 
     // Collect command-line arguments
-    let args: Vec<String> = env::args().collect();
-    let app_name: String;
-
-    // Check if at least one argument is provided
-    if args.len() < 2 {
-        panic!("ERROR: You didn't provided any args!");
-    } else {
-        app_name = args[1..].join(" ");
+    let args = ProtonDBFinderArgs::parse();
+    let response;
+    match &args.sub_command_type {
+        // Proccessing command-line arguments
+        Name(_) => {
+            // Retrieve game information by app name
+            response = Game::get_by_name(args.get_game_name())
+                .await
+                .expect("ERROR: Invalid appId!");
+        }
+        ID(_) => {
+            // Retrieve game information by appID
+            response = Game::get_by_app_id(args.get_game_id())
+                .await
+                .expect("ERROR: Invalid appId!");
+        }
+        _ => panic!("Unexpected error!"),
     }
 
-    // Retrieve game information by app name
-    let response = Game::get_by_name(app_name)
-        .await
-        .expect("ERROR: Invalid appId!");
-
     // Extract the first game from the response
-    let game = response.get(0).expect("ERROR: Invalid name!");
+    let game = response.get(0).expect("ERROR: Invalid appID or name!");
 
     println!("{}", game);
 }
