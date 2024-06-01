@@ -1,7 +1,7 @@
 mod core;
 use clap::Parser;
+use core::args::ProtonDBFinderArgs;
 use core::args::SubCommandType::{Name, ID};
-use core::args::{NameCommand, ProtonDBFinderArgs};
 use core::fetching::Game;
 use std::panic;
 

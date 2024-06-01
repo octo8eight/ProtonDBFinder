@@ -1,3 +1,5 @@
+use crate::core::rating::colorize_rating;
+use colored::*;
 use exitfailure::ExitFailure;
 use reqwest::Url;
 use serde_derive::{Deserialize, Serialize};
@@ -14,6 +16,7 @@ pub struct Game {
     gpuDriver: Option<String>,
     specs: Option<String>,
     protonVersion: Option<String>,
+    name: Option<String>,
 }
 
 // Define a struct to represent game information from search-server
@@ -30,7 +33,10 @@ impl Game {
         let url = Url::parse(&*url)?;
         let res = reqwest::get(url).await?.text().await?;
         let body: GameInfo = serde_json::from_str(&res)?;
-        let game = Self::get_by_app_id(body.appId).await?;
+        let mut game = Self::get_by_app_id(body.appId).await?;
+        let name = Game::get_app_name(body.appId).await?.title;
+
+        game.iter_mut().for_each(|x| x.name = name.clone());
         Ok(game)
     }
 
@@ -39,8 +45,20 @@ impl Game {
         let url = format!("https://protondb.max-p.me/games/{}/reports", app_id);
         let url = Url::parse(&*url)?;
         let res = reqwest::get(url).await?.text().await?;
-        let body: Vec<Game> = serde_json::from_str(&res)?;
+        let mut body: Vec<Game> = serde_json::from_str(&res)?;
+        let name = Game::get_app_name(app_id).await?.title;
+
+        body.iter_mut().for_each(|x| x.name = name.clone());
         Ok(body)
+    }
+
+    // Function to retrieve game name
+    async fn get_app_name(app_id: i32) -> Result<GameInfo, ExitFailure> {
+        let url = format!("https://protondbserver.vercel.app/name/{}", app_id);
+        let url = Url::parse(&*url)?;
+        let res = reqwest::get(url).await?.text().await?;
+        let game: GameInfo = serde_json::from_str(&res)?;
+        Ok(game)
     }
 }
 
@@ -49,11 +67,17 @@ impl std::fmt::Display for Game {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "id: {}\nrating: {}\nos: {}\nnotes: {}",
+            "{}: {}\n{}: {}\n{}: {}\n{}: {}\n{}: {}",
+            "Name".bold(),
+            self.name.as_ref().unwrap(),
+            "ID".bold(),
             self.appId,
-            self.rating.as_ref().unwrap(),
-            self.os.as_ref().unwrap(),
-            self.notes.as_ref().unwrap()
+            "Rating".bold(),
+            colorize_rating(self.rating.as_ref().unwrap()),
+            "OS".bold(),
+            self.os.as_ref().unwrap().underline(),
+            "Notes".bold(),
+            self.notes.as_ref().unwrap().italic()
         )
     }
 }
