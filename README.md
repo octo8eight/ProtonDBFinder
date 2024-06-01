@@ -23,6 +23,3 @@ notes: Actually running Proton 4.11-3. Works perfect out of the box
 ```
 ## TODO
  - Add a selection of found games
- - Add flags support
- - Add --help ( -h ) flag
- - Add --id flag to search with appID
