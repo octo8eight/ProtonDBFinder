@@ -1,48 +1,86 @@
 const app = require("express")();
 const Fuse = require("fuse.js");
 
-// Search endpoint
+// Game info class
+class ProtonGame {
+  constructor(steamDBInfo, protonDBInfo) {
+    this.title = steamDBInfo.name;
+    this.appID = steamDBInfo.appid;
+    this.tier = protonDBInfo.tier[0].toUpperCase() + protonDBInfo.tier.slice(1); // Setting first letter of tier to uppercase
+    this.highestTier =
+      protonDBInfo.bestReportedTier[0].toUpperCase() +
+      protonDBInfo.bestReportedTier.slice(1);
+  }
+}
+
+// Search by name endpoint
 app.get("/:query", async (req, res) => {
+  res.setHeader("Content-Type", "application/json");
   let games;
   const query = req.params.query;
-  // Fetch all games from unofficial protondb API
-  await fetch("https://protondb.max-p.me/games/").then(async (response) => {
-    const data = await response.json();
-    games = data;
-  });
+
+  // Fetching all games from SteamDB
+  await fetch("https://api.steampowered.com/ISteamApps/GetAppList/v2/").then(
+    async (response) => {
+      const data = await response.json();
+      games = data.applist.apps;
+    },
+  );
 
   // Searching nedeed game
-  const fuse = new Fuse(games, { keys: ["title"] });
-  const game = fuse.search(query)[0];
-
-  // Checking if there are some games
-  if (game !== undefined) {
-    res.send(game.item);
-  } else {
+  const fuse = new Fuse(games, { keys: ["name"] });
+  const gameStartInfo = fuse.search(query)[0].item;
+  if (gameStartInfo === undefined) {
     res.sendStatus(404);
   }
+
+  // Fetching data from ProtonDB
+  await fetch(
+    `https://www.protondb.com/api/v1/reports/summaries/${gameStartInfo.appid}.json`,
+  )
+    .then(async (response) => {
+      const data = await response.json();
+      const game = new ProtonGame(gameStartInfo, data);
+      res.send(game);
+    })
+    .catch(() => {
+      res.sendStatus(404);
+    });
 });
 
-// Getting name from appid
-app.get("/name/:id", async (req, res) => {
+// Search by id endpoint
+app.get("/id/:query", async (req, res) => {
+  res.setHeader("Content-Type", "application/json");
   let games;
-  const id = req.params.id;
-  // Fetch all games from unofficial protondb API
-  await fetch("https://protondb.max-p.me/games/").then(async (response) => {
-    const data = await response.json();
-    games = data;
-  });
+  const query = req.params.query;
+
+  // Fetching all games from SteamDB
+  await fetch("https://api.steampowered.com/ISteamApps/GetAppList/v2/").then(
+    async (response) => {
+      const data = await response.json();
+      games = data.applist.apps;
+    },
+  );
 
   // Searching nedeed game
-  const fuse = new Fuse(games, { keys: ["appId"] });
-  const game = fuse.search(id)[0];
-
-  // Checking if there are some games
-  if (game !== undefined) {
-    res.send(game.item);
-  } else {
+  const fuse = new Fuse(games, { keys: ["appid"] });
+  const gameStartInfo = fuse.search(query)[0].item;
+  if (gameStartInfo === undefined) {
     res.sendStatus(404);
   }
+
+  // Fetching data from ProtonDB
+  await fetch(
+    `https://www.protondb.com/api/v1/reports/summaries/${gameStartInfo.appid}.json`,
+  )
+    .then(async (response) => {
+      const data = await response.json();
+      const game = new ProtonGame(gameStartInfo, data);
+      res.send(game);
+    })
+    .catch(() => {
+      res.sendStatus(404);
+    });
 });
 
 app.listen(3000);

@@ -8,8 +8,9 @@ pub struct ProtonDBFinderArgs {
 }
 
 impl ProtonDBFinderArgs {
-    pub fn get_game_name(&self) -> &String {
-        self.sub_command_type.game_name()
+    pub fn get_game_name(&self) -> String {
+        // Joining arg to one string
+        self.sub_command_type.game_name().join(" ")
     }
     pub fn get_game_id(&self) -> i32 {
         self.sub_command_type.game_id()
@@ -25,7 +26,7 @@ pub enum SubCommandType {
 }
 
 impl SubCommandType {
-    pub fn game_name(&self) -> &String {
+    pub fn game_name(&self) -> &Vec<String> {
         match self {
             Self::Name(arg) => &arg.game_name,
             _ => panic!("ERROR"),
@@ -43,7 +44,7 @@ impl SubCommandType {
 pub struct NameCommand {
     /// The name of the game
     #[arg(num_args(0..))]
-    pub game_name: String,
+    pub game_name: Vec<String>,
 }
 
 #[derive(Debug, Args)]

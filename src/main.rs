@@ -14,26 +14,23 @@ async fn main() {
 
     // Collect command-line arguments
     let args = ProtonDBFinderArgs::parse();
-    let response;
+    let game;
     match &args.sub_command_type {
         // Proccessing command-line arguments
         Name(_) => {
             // Retrieve game information by app name
-            response = Game::get_by_name(args.get_game_name())
+            game = Game::get_by_name(args.get_game_name())
                 .await
-                .expect("ERROR: Invalid appId!");
+                .expect("ERROR: Invalid game name!");
         }
         ID(_) => {
             // Retrieve game information by appID
-            response = Game::get_by_app_id(args.get_game_id())
+            game = Game::get_by_app_id(args.get_game_id())
                 .await
                 .expect("ERROR: Invalid appId!");
         }
         _ => panic!("Unexpected error!"),
     }
-
-    // Extract the first game from the response
-    let game = response.get(0).expect("ERROR: Invalid appID or name!");
 
     println!("{}", game);
 }
