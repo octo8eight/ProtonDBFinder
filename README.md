@@ -2,7 +2,8 @@
 Util to check game for Proton compability
 
 ## Usage
-``` Usage: protondb <COMMAND>
+```
+Usage: protondb <COMMAND>
 
 Commands:
   name  Find game with name
@@ -15,14 +16,14 @@ Options:
 
 ```
 ### Example
-``` protondb Dota 2  ```
-```id: 570
-rating: Platinum
-os: Ubuntu 18.04.2 LTS
-notes: Actually running Proton 4.11-3. Works perfect out of the box
+``` protondb name Dota 2 ```
+```
+Name: Dota 2
+ID: 570
+Rating: Platinum
+OS: Ubuntu 18.04.2 LTS
+Notes: Actually running Proton 4.11-3. Works perfect out of the box
+
 ```
 ## TODO
  - Add a selection of found games
- - Add flags support
- - Add --help ( -h ) flag
- - Add --id flag to search with appID
