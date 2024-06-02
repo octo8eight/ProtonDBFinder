@@ -19,10 +19,9 @@ Options:
 ``` protondb name Dota 2 ```
 ```
 Name: Dota 2
-ID: 570
-Rating: Platinum
-OS: Ubuntu 18.04.2 LTS
-Notes: Actually running Proton 4.11-3. Works perfect out of the box
+AppID: 570
+Current rating: Gold
+Highest rating: Platinum
 
 ```
 ## TODO
